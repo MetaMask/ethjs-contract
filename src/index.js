@@ -27,6 +27,10 @@ function getCallableMethodsFromABI(contractABI) {
 
 function contractFactory(query) {
   return function ContractFactory(contractABI, contractBytecode, contractDefaultTxObject) {
+    if (!Array.isArray(contractABI)) { throw new Error(`[ethjs-contract] Contract ABI must be type Array, got type ${typeof contractABI}`); }
+    if (typeof contractBytecode !== 'undefined' && typeof contractBytecode !== 'string') { throw new Error(`[ethjs-contract] Contract bytecode must be type String, got type ${typeof contractBytecode}`); }
+    if (typeof contractDefaultTxObject !== 'undefined' && typeof contractDefaultTxObject !== 'object') { throw new Error(`[ethjs-contract] Contract default tx object must be type Object, got type ${typeof contractABI}`); }
+
     const output = {};
     output.at = function atContract(address) {
       function Contract() {
@@ -89,13 +93,14 @@ function contractFactory(query) {
             } else if (methodObject.type === 'event') {
               const filterInputTypes = getKeys(methodObject.inputs, 'type', false);
               const filterTopic = `0x${keccak256(`${methodObject.name}(${filterInputTypes.join(',')})`)}`;
+              const filterTopcis = [filterTopic];
               const argsObject = Object.assign({}, methodArgs[0]) || {};
 
               return new self.filters.Filter(Object.assign({}, argsObject, {
-                decoder: (logData) => abi.decodeEvent(methodObject, logData),
+                decoder: (logData) => abi.decodeEvent(methodObject, logData, filterTopcis),
                 defaultFilterObject: Object.assign({}, (methodArgs[0] || {}), {
                   to: self.address,
-                  topics: [filterTopic],
+                  topics: filterTopcis,
                 }),
               }));
             }

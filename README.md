@@ -72,8 +72,8 @@ simpleStore.get().catch((error) => {
   // result <BigNumber ...>
 });
 
-const filter = simpleStore.SetComplete()
-.new({ toBlock: 'latest' }, (error, result) => {
+const filter = simpleStore.SetComplete();
+filter.new({ toBlock: 'latest' }, (error, result) => {
   // result null <BigNumber ...> filterId
 });
 filter.watch((err, result) => {

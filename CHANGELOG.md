@@ -1,3 +1,7 @@
+# 0.1.8 -- handles decode of empty addrs nicely
+
+1. Handles decode of empty addrs nicely
+
 # 0.1.6 -- BN formatting update
 
 1. Bn formatting update

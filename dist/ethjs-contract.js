@@ -6090,7 +6090,7 @@ function Result() {}
 
 function encodeParams(types, values) {
   if (types.length !== values.length) {
-    throw new Error('[ethjs-abi] while encoding params, types/values mismatch, types length ' + types.length + ' should be ' + values.length);
+    throw new Error('[ethjs-abi] while encoding params, types/values mismatch, Your contract requires ' + types.length + ' types (arguments), and you passed in ' + values.length);
   }
 
   var parts = [];
@@ -6137,6 +6137,8 @@ function encodeParams(types, values) {
 
 // decode bytecode data from output names and types
 function decodeParams(names, types, data) {
+  var useNumberedParams = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
+
   // Names is optional, so shift over all the parameters if not provided
   if (arguments.length < 3) {
     data = types;
@@ -6158,7 +6160,7 @@ function decodeParams(names, types, data) {
       var result = coder.decode(data, offset);
       offset += result.consumed;
     }
-    values[index] = result.value;
+    if (useNumberedParams) values[index] = result.value;
     if (names[index]) {
       values[names[index]] = result.value;
     }
@@ -6188,12 +6190,61 @@ function encodeEvent(eventObject, values) {
   return encodeMethod(eventObject, values);
 }
 
-// decode method data bytecode, from method ABI object
-function decodeEvent(eventObject, data) {
-  var inputNames = utils.getKeys(eventObject.inputs, 'name', true);
-  var inputTypes = utils.getKeys(eventObject.inputs, 'type');
+function eventSignature(eventObject) {
+  var signature = eventObject.name + '(' + utils.getKeys(eventObject.inputs, 'type').join(',') + ')';
+  return '0x' + utils.keccak256(signature);
+}
 
-  return decodeParams(inputNames, inputTypes, utils.hexOrBuffer(data));
+// decode method data bytecode, from method ABI object
+function decodeEvent(eventObject, data, topics) {
+  var useNumberedParams = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
+
+  var nonIndexed = eventObject.inputs.filter(function (input) {
+    return !input.indexed;
+  });
+  var nonIndexedNames = utils.getKeys(nonIndexed, 'name', true);
+  var nonIndexedTypes = utils.getKeys(nonIndexed, 'type');
+  var event = decodeParams(nonIndexedNames, nonIndexedTypes, utils.hexOrBuffer(data), useNumberedParams);
+  var topicOffset = eventObject.anonymous ? 0 : 1;
+  eventObject.inputs.filter(function (input) {
+    return input.indexed;
+  }).map(function (input, i) {
+    var topic = new Buffer(topics[i + topicOffset].slice(2), 'hex');
+    var coder = getParamCoder(input.type);
+    event[input.name] = coder.decode(topic, 0).value;
+  });
+  event._eventName = eventObject.name;
+  return event;
+}
+
+// Decode a specific log item with a specific event abi
+function decodeLogItem(eventObject, log) {
+  var useNumberedParams = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+
+  if (eventObject && log.topics[0] === eventSignature(eventObject)) {
+    return decodeEvent(eventObject, log.data, log.topics, useNumberedParams);
+  }
+}
+
+// Create a decoder for all events defined in an abi. It returns a function which is called
+// on an array of log entries such as received from getLogs or getTransactionReceipt and parses
+// any matching log entries
+function logDecoder(abi) {
+  var useNumberedParams = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+  var eventMap = {};
+  abi.filter(function (item) {
+    return item.type === 'event';
+  }).map(function (item) {
+    eventMap[eventSignature(item)] = item;
+  });
+  return function (logItems) {
+    return logItems.map(function (log) {
+      return decodeLogItem(eventMap[log.topics[0]], log, useNumberedParams);
+    }).filter(function (i) {
+      return i;
+    });
+  };
 }
 
 module.exports = {
@@ -6202,7 +6253,10 @@ module.exports = {
   encodeMethod: encodeMethod,
   decodeMethod: decodeMethod,
   encodeEvent: encodeEvent,
-  decodeEvent: decodeEvent
+  decodeEvent: decodeEvent,
+  decodeLogItem: decodeLogItem,
+  logDecoder: logDecoder,
+  eventSignature: eventSignature
 };
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0).Buffer))
 
@@ -6407,6 +6461,16 @@ function getCallableMethodsFromABI(contractABI) {
 
 function contractFactory(query) {
   return function ContractFactory(contractABI, contractBytecode, contractDefaultTxObject) {
+    if (!Array.isArray(contractABI)) {
+      throw new Error('[ethjs-contract] Contract ABI must be type Array, got type ' + typeof contractABI);
+    }
+    if (typeof contractBytecode !== 'undefined' && typeof contractBytecode !== 'string') {
+      throw new Error('[ethjs-contract] Contract bytecode must be type String, got type ' + typeof contractBytecode);
+    }
+    if (typeof contractDefaultTxObject !== 'undefined' && typeof contractDefaultTxObject !== 'object') {
+      throw new Error('[ethjs-contract] Contract default tx object must be type Object, got type ' + typeof contractABI);
+    }
+
     var output = {};
     output.at = function atContract(address) {
       function Contract() {
@@ -6466,19 +6530,26 @@ function contractFactory(query) {
                 query[queryMethod](methodTxObject, newMethodCallback);
               });
             } else if (methodObject.type === 'event') {
-              var filterInputTypes = getKeys(methodObject.inputs, 'type', false);
-              var filterTopic = '0x' + keccak256(methodObject.name + '(' + filterInputTypes.join(',') + ')');
-              var argsObject = Object.assign({}, methodArgs[0]) || {};
+              var _ret = function () {
+                var filterInputTypes = getKeys(methodObject.inputs, 'type', false);
+                var filterTopic = '0x' + keccak256(methodObject.name + '(' + filterInputTypes.join(',') + ')');
+                var filterTopcis = [filterTopic];
+                var argsObject = Object.assign({}, methodArgs[0]) || {};
 
-              return new self.filters.Filter(Object.assign({}, argsObject, {
-                decoder: function decoder(logData) {
-                  return abi.decodeEvent(methodObject, logData);
-                },
-                defaultFilterObject: Object.assign({}, methodArgs[0] || {}, {
-                  to: self.address,
-                  topics: [filterTopic]
-                })
-              }));
+                return {
+                  v: new self.filters.Filter(Object.assign({}, argsObject, {
+                    decoder: function decoder(logData) {
+                      return abi.decodeEvent(methodObject, logData, filterTopcis);
+                    },
+                    defaultFilterObject: Object.assign({}, methodArgs[0] || {}, {
+                      to: self.address,
+                      topics: filterTopcis
+                    })
+                  }))
+                };
+              }();
+
+              if (typeof _ret === "object") return _ret.v;
             }
           };
         });
@@ -6801,7 +6872,7 @@ function coderFixedBytes(length) {
       return result;
     },
     decode: function decodeFixedBytes(data, offset) {
-      if (data.length < offset + 32) {
+      if (data.length !== 0 && data.length < offset + 32) {
         throw new Error('[ethjs-abi] while decoding fixed bytes, invalid bytes data length: ' + length);
       }
 
@@ -6826,7 +6897,13 @@ var coderAddress = {
     return result;
   },
   decode: function decodeAddress(data, offset) {
-    if (data.length < offset + 32) {
+    if (data.length === 0) {
+      return {
+        consumed: 32,
+        value: '0x'
+      };
+    }
+    if (data.length !== 0 && data.length < offset + 32) {
       throw new Error('[ethjs-abi] while decoding address data, invalid address data, invalid byte length ' + data.length);
     }
     return {
@@ -6845,13 +6922,13 @@ function encodeDynamicBytesHelper(value) {
 }
 
 function decodeDynamicBytesHelper(data, offset) {
-  if (data.length < offset + 32) {
+  if (data.length !== 0 && data.length < offset + 32) {
     throw new Error('[ethjs-abi] while decoding dynamic bytes data, invalid bytes length: ' + data.length + ' should be less than ' + (offset + 32));
   }
 
   var length = uint256Coder.decode(data, offset).value; // eslint-disable-line
   length = length.toNumber();
-  if (data.length < offset + 32 + length) {
+  if (data.length !== 0 && data.length < offset + 32 + length) {
     throw new Error('[ethjs-abi] while decoding dynamic bytes data, invalid bytes length: ' + data.length + ' should be less than ' + (offset + 32 + length));
   }
 
