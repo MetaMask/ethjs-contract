@@ -126,7 +126,6 @@
     "eslint-plugin-import": "1.8.0",
     "eslint-plugin-jsx-a11y": "1.2.0",
     "eslint-plugin-react": "5.1.1",
-    "ethjs-provider-http": "0.1.6",
     "ethjs-query": "^0.3.6",
     "ganache-cli": "^6.12.2",
     "hard-rejection": "^1.0.0",
