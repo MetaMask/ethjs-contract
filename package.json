@@ -88,7 +88,7 @@
   "deprecated": false,
   "description": "A simple contract object for the Ethereum RPC.",
   "devDependencies": {
-    "async": "^2.6.0",
+    "async": "^2.6.4",
     "babel-cli": "6.18.0",
     "babel-core": "6.18.2",
     "babel-eslint": "7.1.0",
