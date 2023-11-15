@@ -132,7 +132,7 @@
     "hard-rejection": "^1.0.0",
     "istanbul": "0.4.5",
     "json-loader": "0.5.4",
-    "mocha": "3.1.2",
+    "mocha": "~7.2.0",
     "pre-commit": "^1.2.2",
     "rimraf": "^3.0.2",
     "webpack": "2.1.0-beta.15"
@@ -215,10 +215,10 @@
     "pretest": "npm run lint",
     "release": "npmpub",
     "start": "npm test",
-    "test": "mocha ./src/tests/**/*.js -R spec --timeout 2000000",
+    "test": "mocha ./src/tests/**/*.js -R spec --timeout 2000000  --check-leaks --exit",
     "test:clean": "rimraf ./coverage",
     "test:coverage": "node ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- src/tests/**/*.js -R spec --timeout 2000000",
-    "test:lib": "mocha ./lib/tests/**/*.js -R spec --timeout 2000000"
+    "test:lib": "mocha ./lib/tests/**/*.js -R spec --timeout 2000000  --check-leaks --exit"
   },
   "version": "0.2.3"
 }
