@@ -130,7 +130,6 @@
     "ethereumjs-testrpc": "3.0.2",
     "ethjs-provider-http": "0.1.3",
     "ethjs-query": "^0.3.6",
-    "eventsource-polyfill": "0.9.6",
     "ganache-cli": "^6.12.2",
     "hard-rejection": "^1.0.0",
     "istanbul": "0.4.5",
