@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [0.3.2]
-### Uncategorized
-- deps: replace ethjs packages with @metamask forks ([#12](https://github.com/MetaMask/ethjs-contract/pull/12))
+### Changed
+- Replace `ethjs-` packages with `@metamask` forks ([#12](https://github.com/MetaMask/ethjs-contract/pull/12))
+
+### Fixed
+- Update and unpin dependency `js-sha3` from `0.5.5` to `^0.9.2` ([#11](https://github.com/MetaMask/ethjs-contract/pull/11))
 
 ## [0.3.1]
 ### Fixed
