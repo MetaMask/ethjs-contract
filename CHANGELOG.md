@@ -7,8 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [0.3.4]
-### Uncategorized
-- chore: fix changelog category for 0.3.3
+### Changed
+- Unpin `ethjs-abi` from `0.2.0` to `^0.2.0`, allowing `ethjs-abi@0.2.1` ([#19](https://github.com/MetaMask/ethjs-contract/pull/19))
 
 ## [0.3.3]
 ### Changed
