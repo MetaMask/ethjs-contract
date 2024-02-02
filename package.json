@@ -85,7 +85,7 @@
   "deprecated": false,
   "description": "A simple contract object for the Ethereum RPC.",
   "devDependencies": {
-    "@metamask/ethjs-query": "^0.5.1",
+    "@metamask/ethjs-query": "^0.7.1",
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
     "@babel/eslint-parser": "^7.11.0",
@@ -115,7 +115,6 @@
     "@babel/register": "^7.0.0",
     "async": "^2.6.4",
     "babel-loader": "^8.0.0",
-    "babel-runtime": "^6.26.0",
     "chai": "^4.3.10",
     "cross-env": "^6.0.3",
     "eslint": "^5.4.0",
