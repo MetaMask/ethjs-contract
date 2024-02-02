@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [0.4.1]
+### Changed
+- Update `@metamask/ethjs-filter` from `^0.2.0` to `^0.3.0` ([#21](https://github.com/MetaMask/ethjs-contract/pull/21))
+- Update `@metamask/ethjs-util` from `^0.2.0` to `^0.3.0` ([#21](https://github.com/MetaMask/ethjs-contract/pull/21))
+
+### Fixed
+- Remove dependency `babel-runtime@^6.26.0` ([#21](https://github.com/MetaMask/ethjs-contract/pull/21))
 
 ## [0.4.0]
 ### Changed
