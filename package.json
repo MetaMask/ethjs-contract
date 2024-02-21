@@ -117,7 +117,7 @@
     "babel-loader": "^8.0.0",
     "chai": "^4.4.1",
     "cross-env": "^7.0.3",
-    "eslint": "^5.4.0",
+    "eslint": "^7.32.0",
     "eslint-config-airbnb": "^17.1.1",
     "eslint-import-resolver-webpack": "^0.2.4",
     "eslint-plugin-import": "^2.18.0",
@@ -144,14 +144,16 @@
       "mocha": true,
       "es6": true
     },
-    "overrides": {
-      "files": [
-        "src/tests/**.js"
-      ],
-      "rules": {
-        "import/no-extraneous-dependencies": 0
+    "overrides": [
+      {
+        "files": [
+          "src/tests/**.js"
+        ],
+        "rules": {
+          "import/no-extraneous-dependencies": 0
+        }
       }
-    },
+    ],
     "parserOptions": {
       "ecmaVersion": 6,
       "sourceType": "module"
