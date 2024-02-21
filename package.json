@@ -116,7 +116,7 @@
     "async": "^2.6.4",
     "babel-loader": "^8.0.0",
     "chai": "^4.3.10",
-    "cross-env": "^6.0.3",
+    "cross-env": "^7.0.3",
     "eslint": "^5.4.0",
     "eslint-config-airbnb": "^17.1.1",
     "eslint-import-resolver-webpack": "^0.2.4",
