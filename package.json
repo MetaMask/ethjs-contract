@@ -115,7 +115,7 @@
     "@babel/register": "^7.0.0",
     "async": "^2.6.4",
     "babel-loader": "^8.0.0",
-    "chai": "^4.3.10",
+    "chai": "^4.4.1",
     "cross-env": "^7.0.3",
     "eslint": "^5.4.0",
     "eslint-config-airbnb": "^17.1.1",
